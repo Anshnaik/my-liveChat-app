@@ -27,6 +27,13 @@ app.post("/upload", upload.single("file"), (req, res) => {
   });
 });
 
+// ✅ Serve frontend build (dist folder)
+app.use(express.static(path.join(__dirname, "dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
+});
+
 // HTTP + WebSocket server
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
@@ -60,7 +67,7 @@ wss.on("connection", (ws) => {
       return;
     }
 
-    // Broadcast messages to clients in same room or in global
+    // Broadcast messages to clients in same room or global
     wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         if ((parsed.room && client.room === parsed.room) || (!parsed.room && !client.room)) {
@@ -73,5 +80,6 @@ wss.on("connection", (ws) => {
   ws.on("close", () => console.log("Client disconnected"));
 });
 
-const PORT = 3000;
-server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+// ✅ Use Render's dynamic PORT
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
